@@ -1,3 +1,4 @@
+#/usr/env python
 #coding=gbk
 
 import paramiko
