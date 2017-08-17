@@ -1,11 +1,10 @@
-#/usr/env python
+#/usr/bin/env python
 #coding=gbk
 
 import paramiko
 import time
-import os
-
-
+import telnetlib
+from os import path,mkdir
 
 #数据汇总
 class collect:
@@ -102,9 +101,11 @@ class collect:
 
         #topas命令(交互式命令，脚本不可用)
         # CMD2 = 'topas'
-        # input,output,err = ssh.exec_command(CMD2)
-        # output = output.read().decode()
-        # err = err.read().decode()
+        # input2,output,err = ssh.exec_command(CMD2)
+        # input2.write("q\n")
+        # input2.flush ()
+        # output2 = output.read().decode()
+        # err2 = err.read().decode()
 
         return "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"
 
@@ -124,9 +125,9 @@ class collect:
         return TEMP
 
 
-    #数据库信息OK
+    #数据库信息NO
     def dbinfo(self):
-        a,b,c = ssh.exec_command ('cd ~/')
+        # a,b,c = ssh.exec_command ('cd ~/')
         CMD='isql -Usxlottery -Psxlottery -Dsxlottery -i isql.txt -o osql.txt'
         input,output,err = ssh.exec_command(CMD)
         output = output.read().decode()
@@ -148,17 +149,15 @@ class collect:
 
         return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
 
-    #telnet信息NO
+    #telnet信息OK
     def telnet(self,hostname,port):
-        #%s %d' %(hostname,port)
-        #input,output,err = ssh.exec_command('telnet 127.0.0.1 7000' )
-        #output = output.read().decode()
-        #err = err.read().decode()
-        #print output
-        #print err
-        #tn = telnetlib.Telnet (hostname,port,5)
-
-        return 0
+        try:
+            tn = telnetlib.Telnet (hostname,port,timeout=1)
+            tn.set_debuglevel (3)
+            re = hostname+":"+str(port)+" Connect Succeed\n\n"
+        except:
+            re = hostname+":"+str(port)+" Connect Error\n\n"
+        return "[ telnet ]\n"+re
 
     #证书信息OK
     def cart(self):
@@ -184,12 +183,17 @@ class collect:
     #信息存到文件OK
     def filesave(self,data,mode):
         NOW_DATE = time.strftime ("%Y%m%d", time.localtime ())
+        #数据存放在当前目录下的data目录
+        if path.exists("./data"):
+            pass
+        else:
+            mkdir("./data")
         if mode == "add" :
-            FILE_NAME1 = '%s_%s.txt'%(localhost,NOW_DATE)
+            FILE_NAME1 = './data/%s_%s.txt'%(localhost,NOW_DATE)
             file = open (FILE_NAME1, 'a')
             file.write (data.encode ('gbk'))
         elif mode == "new":
-            FILE_NAME2 = '%s_%s.txt'%(localhost,NOW_DATE)
+            FILE_NAME2 = './data/%s_%s.txt'%(localhost,NOW_DATE)
             file = open(FILE_NAME2,'w')
             file.write(data.encode('gbk'))
         else :
@@ -204,13 +208,14 @@ class collect:
         TEMP="\nClose OK!\n"
         return TEMP
 
+#class filter:
 
 
 if __name__ == '__main__':
-    print "local run....."
+    print("local run.....")
     a = collect()
-    a.connect ('hostname', 22, 'username', 'password')
-    t=a.command("bash temp.sh ~/bin/s")
+    a.connect ('10.13.0.9', 22, 'hebappv9', 'tgbhu567890')
+    #t=a.command("bash temp.sh ~/bin/s")
 
     # d=a.diskinfo()
     # t=d.diskinfo()
@@ -240,10 +245,10 @@ if __name__ == '__main__':
     # t=a.cart()
     # a.filesave (t, 'add')
 
-    # CMD="lspv hdisk0 | awk -F ' ' '{print $3}' | sed -n '6,8'p"
-    # t=a.command(CMD)
+    t = a.telnet("10.13.0.9",200)
+    a.filesave (t, 'add')
 
-    print t
+    print (t)
     a.close ()
 
 
