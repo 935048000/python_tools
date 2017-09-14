@@ -2,12 +2,20 @@
 #coding=gbk
 
 import paramiko
-import time
-import telnetlib
+from  time import strftime,localtime
+from telnetlib import Telnet
 from os import path,mkdir
+
+#时间的全局变量
+global NOW_DATE,NOW_TIME
+NOW_DATE = strftime ("%Y%m%d", localtime ())#当前日期，格式：YYYYmmdd
+NOW_TIME = strftime ("%Y-%m-%d %H:%M", localtime ())#当前时间,格式：YYYY-mm-dd HH:MM
 
 #数据汇总
 class collect:
+    """
+    Data Collect Class
+    """
     #服务器连接OK
     def connect(self,hostname,port,username,password):
         global ssh
@@ -25,7 +33,7 @@ class collect:
     def command(self,CMD):
         input, output, err = ssh.exec_command(CMD)
         output = output.read().decode("gbk")
-        err = err.read().decode("gbk")
+        err = err.read().decode()
         return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
 
     # 磁盘信息OK
@@ -36,7 +44,7 @@ class collect:
             input, output, err = ssh.exec_command (CMD)
             output = output.read ().decode ()
             err = err.read ().decode ()
-            return "\n[ "+CMD+" ]\n\n"+output+err+"\n[ "+CMD+" END ]\n"
+            return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
 
 
         #磁盘阵列信息
@@ -60,19 +68,19 @@ class collect:
                 input,output,err = ssh.exec_command(CMD3)
                 output3 = output.read().decode()
                 err3 = err.read ().decode ()
-                I = I+"[ "+CMD3+" ]\n\n"+output3+"\n"+"[ "+CMD3+" END ]\n\n"
+                I = I+"[ "+CMD3+" ]\n\n"+output3+"\n"+err3+"\n"
 
-            TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n[ "+CMD1+" END ]\n"+I+err3+"\n"
+            TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"+I
             return TEMP
 
 
     #进程信息OK
     def process(self):
         #s命令
-        CMD1 = "~/bin/s"
-        input,output,err = ssh.exec_command(CMD1)
-        output1 = output.read().decode('gbk')
-        err1 = err.read().decode('gbk')
+        # CMD1 = "~/bin/s"
+        # input,output,err = ssh.exec_command(CMD1)
+        # output1 = output.read().decode('gbk')
+        # err1 = err.read().decode('gbk')
 
         #ps命令
         CMD2 = 'ps -ef | grep $LOGNAME'
@@ -80,7 +88,7 @@ class collect:
         output2 = output.read().decode()
         err2 = err.read().decode()
 
-        TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"+"\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
+        TEMP = "\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
         return TEMP
 
     #内存信息OK
@@ -109,28 +117,27 @@ class collect:
 
         return "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"
 
-    #错误日志OK
+    #软硬件错误日志OK
     def errlog(self,num):
-        CMD1 = 'errpt -d H -s %s'%(num)
+        CMD1 = 'errpt -d H -s %s | grep ERROR'%(num)
         input, output, err = ssh.exec_command (CMD1)
         output1 = output.read ().decode ()
         err1 = err.read ().decode ()
 
-        CMD2 = 'errpt -aj BFE4C025'
-        input, output, err = ssh.exec_command (CMD2)
-        output2 = output.read ().decode ()
-        err2 = err.read ().decode ()
+        # CMD2 = 'errpt -aj BFE4C025'
+        # input, output, err = ssh.exec_command (CMD2)
+        # output2 = output.read ().decode ()
+        # err2 = err.read ().decode ()
 
-        TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"+"\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
+        TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"
         return TEMP
 
 
     #数据库信息NO
     def dbinfo(self):
-        # a,b,c = ssh.exec_command ('cd ~/')
-        CMD='isql -Usxlottery -Psxlottery -Dsxlottery -i isql.txt -o osql.txt'
+        #CMD='isql -Usxlottery -Psxlottery -Dsxlottery -i isql.txt -o osql.txt'
         input,output,err = ssh.exec_command(CMD)
-        output = output.read().decode()
+        output = output.read().decode("gbk")
         err = err.read().decode()
 
         return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
@@ -152,11 +159,11 @@ class collect:
     #telnet信息OK
     def telnet(self,hostname,port):
         try:
-            tn = telnetlib.Telnet (hostname,port,timeout=1)
-            tn.set_debuglevel (3)
-            re = hostname+":"+str(port)+" Connect Succeed\n\n"
+            tn = Telnet (hostname,port,timeout=1)
         except:
             re = hostname+":"+str(port)+" Connect Error\n\n"
+            return "[ telnet ]\n" + re
+        re = hostname + ":" + str (port) + " Connect Succeed. Time: %s\n\n" % (NOW_TIME)
         return "[ telnet ]\n"+re
 
     #证书信息OK
@@ -180,20 +187,42 @@ class collect:
     def filedata(self):
         return
 
+    #日志信息
+    def loginfo(self):
+        CMD1 = "cd ~/log/;ls BK*.log Gateway*.log TM*.log MD*.log T900001.log T900999.log Database.err ~/FlowCtrl.log "
+        input1, output1, err1 = ssh.exec_command(CMD1)
+        TEMP = output1.read().decode("gbk")
+        LogFileList = TEMP.split("\n")
+        I = "\n"
+        for i in LogFileList[:-1]:
+            CMD2 = "cd ~/log/;~/bin/ptail -n 200 %s"%(i)
+            input2, output2, err2 = ssh.exec_command (CMD2)
+            output2 = output2.read ().decode ("gbk")
+            err2 = err2.read ().decode ("gbk")
+            I = I+output2+err2+"\n\n"
+        return I
+
+
+
     #信息存到文件OK
-    def filesave(self,data,mode):
-        NOW_DATE = time.strftime ("%Y%m%d", time.localtime ())
+    def filesave(self,data,mode,*FileType):
         #数据存放在当前目录下的data目录
+        if len(FileType) == 1:
+            if FileType[0] == "log":
+                file_type = "log"
+        else:
+            file_type = "txt"
+
         if path.exists("./data"):
             pass
         else:
             mkdir("./data")
         if mode == "add" :
-            FILE_NAME1 = './data/%s_%s.txt'%(localhost,NOW_DATE)
+            FILE_NAME1 = './data/%s_%s.%s'%(localhost,NOW_DATE,file_type)
             file = open (FILE_NAME1, 'a')
             file.write (data.encode ('gbk'))
         elif mode == "new":
-            FILE_NAME2 = './data/%s_%s.txt'%(localhost,NOW_DATE)
+            FILE_NAME2 = './data/%s_%s.%s'%(localhost,NOW_DATE,file_type)
             file = open(FILE_NAME2,'w')
             file.write(data.encode('gbk'))
         else :
@@ -211,15 +240,16 @@ class collect:
 #class filter:
 
 
+
 if __name__ == '__main__':
     print("local run.....")
-    a = collect()
-    a.connect ('10.13.0.9', 22, 'hebappv9', 'tgbhu567890')
-    #t=a.command("bash temp.sh ~/bin/s")
-
+    # a = collect()
+    # a.connect ('10.13.0.9', 22, 'username', 'password')#指定主机
+    # t=a.command("~/bin/ShowPDA")
+    #
     # d=a.diskinfo()
     # t=d.diskinfo()
-    # a.filesave (t, 'add')
+    # a.filesave (t, 'add')#写入文件
     # t=d.diskarray()
     # a.filesave (t, 'add')
     #
@@ -235,7 +265,7 @@ if __name__ == '__main__':
     # t=a.errlog("0701000017")
     # a.filesave (t, 'add')
     #
-    # #t = a.dbinfo()
+    #t = a.dbinfo()
     # #t=a.dbdump()
     #
     # t=a.ping("127.0.0.1",3)
@@ -245,11 +275,14 @@ if __name__ == '__main__':
     # t=a.cart()
     # a.filesave (t, 'add')
 
-    t = a.telnet("10.13.0.9",200)
-    a.filesave (t, 'add')
+    #t = a.telnet("10.13.0.9",7000)
+    #a.filesave (t, 'add')
 
-    print (t)
-    a.close ()
+    # t=a.loginfo()
+    # a.filesave (t, 'add')
+
+    # print (t)#输出采集内容
+    # a.close ()#断开ssh连接
 
 
 
