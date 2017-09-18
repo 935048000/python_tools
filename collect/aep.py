@@ -24,7 +24,7 @@ class collect:
     Data Collect Class
     """
     #服务器连接OK
-    def connect(self,hostname,port,username,password):
+    def connect(self, hostname, port, username, password):
         global ssh
         global localhost
         ssh = paramiko.SSHClient ()
@@ -222,7 +222,7 @@ class collect:
         if path.exists(DATAPATH):
             pass
         else:
-            mkdir(PATH)
+            mkdir(DATAPATH)
         if mode == "add" :
             FILE_NAME1 = '%s/%s_%s.%s'%(DATAPATH,localhost,NOW_DATE,file_type)
             file = open (FILE_NAME1, 'a')
