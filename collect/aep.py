@@ -4,12 +4,19 @@
 import paramiko
 from  time import strftime,localtime
 from telnetlib import Telnet
-from os import path,mkdir
+from os import path,mkdir,getcwd
+from sys import argv
 
-#时间的全局变量
+# 时间的全局变量
 global NOW_DATE,NOW_TIME
 NOW_DATE = strftime ("%Y%m%d", localtime ())#当前日期，格式：YYYYmmdd
 NOW_TIME = strftime ("%Y-%m-%d %H:%M", localtime ())#当前时间,格式：YYYY-mm-dd HH:MM
+
+# 路径相关的全局变量
+global USERPATH,WORKPATH,DATAPATH
+USERPATH = argv[0] # 执行脚本的脚本文件路径
+WORKPATH = getcwd() # 执行脚本的当前目录路径
+DATAPATH = WORKPATH+"\data" #执行脚本当前路径下的data目录
 
 #数据汇总
 class collect:
@@ -74,7 +81,7 @@ class collect:
             return TEMP
 
 
-    #进程信息OK
+    # 进程信息OK
     def process(self):
         #s命令
         # CMD1 = "~/bin/s"
@@ -91,7 +98,7 @@ class collect:
         TEMP = "\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
         return TEMP
 
-    #内存信息OK
+    # 内存信息OK
     def meminfo(self):
         CMD = 'vmstat 1 10'
         input, output, err = ssh.exec_command (CMD)
@@ -99,7 +106,7 @@ class collect:
         err = err.read ().decode ()
         return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
 
-    #关键服务进程内存信息OK
+    # 关键服务进程内存信息OK
     def servicemem(self):
         #ps命令
         CMD1 = 'ps auwx | head -n 1;ps auwx | grep appv9 | egrep -v "RSS" | sort +5b -6 -n -r'
@@ -117,7 +124,7 @@ class collect:
 
         return "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"
 
-    #软硬件错误日志OK
+    # 软硬件错误日志OK
     def errlog(self,num):
         CMD1 = 'errpt -d H -s %s | grep ERROR'%(num)
         input, output, err = ssh.exec_command (CMD1)
@@ -156,7 +163,7 @@ class collect:
 
         return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
 
-    #telnet信息OK
+    # telnet信息OK
     def telnet(self,hostname,port):
         try:
             tn = Telnet (hostname,port,timeout=1)
@@ -166,7 +173,7 @@ class collect:
         re = hostname + ":" + str (port) + " Connect Succeed. Time: %s\n\n" % (NOW_TIME)
         return "[ telnet ]\n"+re
 
-    #证书信息OK
+    # 证书信息OK
     def cart(self):
         #证书总数
         CMD1 = 'ls -al ~/dat/Crypto/AgentCert*'
@@ -183,11 +190,11 @@ class collect:
         TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"+"\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
         return TEMP
 
-    #文件数据和期汇总表数据稽核NO
+    # 文件数据和期汇总表数据稽核NO
     def filedata(self):
         return
 
-    #日志信息
+    # 日志信息
     def loginfo(self):
         CMD1 = "cd ~/log/;ls BK*.log Gateway*.log TM*.log MD*.log T900001.log T900999.log Database.err ~/FlowCtrl.log "
         input1, output1, err1 = ssh.exec_command(CMD1)
@@ -203,7 +210,7 @@ class collect:
         return I
 
 
-    #信息存到文件OK
+    # 信息存到文件OK
     def filesave(self,data,mode,*FileType):
         #数据存放在当前目录下的data目录
         if len(FileType) == 1:
@@ -212,16 +219,16 @@ class collect:
         else:
             file_type = "txt"
 
-        if path.exists("./data"):
+        if path.exists(DATAPATH):
             pass
         else:
-            mkdir("./data")
+            mkdir(PATH)
         if mode == "add" :
-            FILE_NAME1 = './data/%s_%s.%s'%(localhost,NOW_DATE,file_type)
+            FILE_NAME1 = '%s/%s_%s.%s'%(DATAPATH,localhost,NOW_DATE,file_type)
             file = open (FILE_NAME1, 'a')
             file.write (data.encode ('gbk'))
         elif mode == "new":
-            FILE_NAME2 = './data/%s_%s.%s'%(localhost,NOW_DATE,file_type)
+            FILE_NAME2 = '%s/%s_%s.%s'%(DATAPATH,localhost,NOW_DATE,file_type)
             file = open(FILE_NAME2,'w')
             file.write(data.encode('gbk'))
         else :
@@ -239,10 +246,11 @@ class collect:
 
 
 if __name__ == '__main__':
-    print("local run.....")
+    print("local run script.....")
+    ## 程序测试代码
     # a = collect()
     # a.connect ('10.13.0.9', 22, 'hebappv9', 'tgbhu567890')#指定主机
-    # t=a.command("~/bin/ShowPDA")
+    # t=a.command("ls")
     #
     # d=a.diskinfo()
     # t=d.diskinfo()
@@ -280,6 +288,7 @@ if __name__ == '__main__':
 
     # print (t)#输出采集内容
     # a.close ()#断开ssh连接
+
 
 
 
