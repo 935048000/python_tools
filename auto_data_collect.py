@@ -99,8 +99,8 @@ class collect:
         err = err.read ().decode ()
         return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
 
-    #CPU信息OK
-    def cpuinfo(self):
+    #关键服务进程内存信息OK
+    def servicemem(self):
         #ps命令
         CMD1 = 'ps auwx | head -n 1;ps auwx | grep appv9 | egrep -v "RSS" | sort +5b -6 -n -r'
         input, output, err = ssh.exec_command (CMD1)
@@ -133,19 +133,19 @@ class collect:
         return TEMP
 
 
-    #数据库信息NO
-    def dbinfo(self):
-        #CMD='isql -Usxlottery -Psxlottery -Dsxlottery -i isql.txt -o osql.txt'
-        input,output,err = ssh.exec_command(CMD)
-        output = output.read().decode("gbk")
-        err = err.read().decode()
-
-        return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
-
-    #数据库备份NO
-    def dbdump(self):
-
-        return 0
+    # #数据库信息NO
+    # def dbinfo(self):
+    #     #CMD='isql -Usxlottery -Psxlottery -Dsxlottery -i isql.txt -o osql.txt'
+    #     input,output,err = ssh.exec_command(CMD)
+    #     output = output.read().decode("gbk")
+    #     err = err.read().decode()
+    #
+    #     return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
+    #
+    # #数据库备份NO
+    # def dbdump(self):
+    #
+    #     return 0
 
     #ping信息OK
     def ping(self,hostname,num):
@@ -203,7 +203,6 @@ class collect:
         return I
 
 
-
     #信息存到文件OK
     def filesave(self,data,mode,*FileType):
         #数据存放在当前目录下的data目录
@@ -237,8 +236,6 @@ class collect:
         TEMP="\nClose OK!\n"
         return TEMP
 
-#class filter:
-
 
 
 if __name__ == '__main__':
@@ -259,7 +256,7 @@ if __name__ == '__main__':
     # t=a.meminfo()
     # a.filesave (t, 'add')
     #
-    # t=a.cpuinfo()
+    # t=a.servicemem()
     # a.filesave (t, 'add')
     #
     # t=a.errlog("0701000017")
