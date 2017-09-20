@@ -190,10 +190,6 @@ class collect:
         TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"+"\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
         return TEMP
 
-    # 文件数据和期汇总表数据稽核NO
-    def filedata(self):
-        return
-
     # 日志信息
     def loginfo(self):
         CMD1 = "cd ~/log/;ls BK*.log Gateway*.log TM*.log MD*.log T900001.log T900999.log Database.err ~/FlowCtrl.log "
