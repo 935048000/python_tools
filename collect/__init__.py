@@ -1,5 +1,6 @@
 import sys
 from collect.aep import collect
+from txt2excel import dataswitch
 from collect.version import __version__
 
 #python version > V2.6
@@ -10,7 +11,7 @@ __author__ = "chen.hao <chenhao159482@gmail.com>"
 __license__ = "GNU Lesser General Public License (LGPL)"
 
 
-__all__ = ['aep',]
+__all__ = ['collect','txt2excel',]
 
 
 
