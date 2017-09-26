@@ -3,18 +3,32 @@
 import xlsxwriter
 import collect
 from os import getcwd
+from  time import strftime,localtime
 
 #该版本开发版V1.0.1
 
-# 获取服务器最新的性能数据
-def datafilename():
-    a = collect.collect()
-    a.connect ('x.x.x.x', 22, 'xxxx', 'xxxxx')
-    t=a.command("ls ~/log/Check/T913714.*.dat | tail -n 1")
-    print t
-    a.close()
 
-# 数据文本转化为Excel表格并绘折线图
+# 将服务器的数据转存本地
+def SFile2CFile():
+    NOW_DATE = strftime ("%Y%m", localtime ())  # 取当前年月
+    a = collect.collect ()
+    a.connect ('x.x.x.x', 22, 'xxxx', 'xxxxx')
+    CMD1 = "ls ~/xxx/xxx/*.%s.dat" % (NOW_DATE)  # 根据年月查找对应的日志命令
+    SFile = a.command (CMD1, "notitle")
+    SFile = SFile.split ('\n') # 获取文件列表，带路径
+    CFileNameTEMP = [] #用于函数返回的文件名
+    for i in SFile[:-1]: # 文件转存
+        CFileName = i[-18:-4]# 获取文件名
+        CMD2 = "cat %s "%(i)
+        SData = a.command (CMD2, "notitle")
+        CFile = open (CFileName, 'w')
+        CFile.write(SData)
+        CFile.close()
+        CFileNameTEMP.append(CFileName)
+    a.close ()
+    return CFileNameTEMP
+
+# 将本地的数据文本转化为Excel表格并绘折线图
 def txt2xlsx(txtfile,xlsxfile):
     #path = getcwd()
     datafile = txtfile # 数据文件名
@@ -34,7 +48,7 @@ def txt2xlsx(txtfile,xlsxfile):
     f.close ()
 
     work = xlsxwriter.Workbook(xltfile)
-    worksheet = work.add_worksheet()
+    worksheet = work.add_worksheet(tablename)
 
     f = open (datafile, 'r')
     row = 0
@@ -51,8 +65,8 @@ def txt2xlsx(txtfile,xlsxfile):
         f.close()
 
         chartdict = { 'categories': '=Sheet1!$A$1:$A$10','values':'=Sheet1!$C$1:$C$10'}
-        chartdict['categories'] = '=Sheet1!$A$1:$A$%d'%(dataL)
-        chartdict['values'] = '=Sheet1!$C$1:$C$%d'%(dataL)
+        chartdict['categories'] = '=%s!$A$1:$A$%d'%(tablename,dataL)
+        chartdict['values'] = '=%s!$C$1:$C$%d'%(tablename,dataL)
     else:
         for i in f.readlines ():#生成表格
             l = i.strip ("\n").split ("\t")
@@ -65,8 +79,8 @@ def txt2xlsx(txtfile,xlsxfile):
         f.close ()
 
         chartdict = {'categories': '=Sheet1!$C$1:$C$10', 'values': '=Sheet1!$D$1:$D$10'}
-        chartdict['categories'] = '=Sheet1!$C$1:$C$%d' % (dataL)
-        chartdict['values'] = '=Sheet1!$D$1:$D$%d' % (dataL)
+        chartdict['categories'] = '=%s!$C$1:$C$%d' % (tablename,dataL)
+        chartdict['values'] = '=%s!$D$1:$D$%d' % (tablename,dataL)
     #绘图
     chartname = { 'name':'chartname' }
     chartname['name'] = '%s' %(tablename)
@@ -80,4 +94,18 @@ def txt2xlsx(txtfile,xlsxfile):
 
 # 测试
 if __name__ == '__main__':
-	txt2xlsx("T913714.201709.dat","Test.xlsx")
+
+    #server2local ()
+    #txt2xlsx("","Test.xlsx")
+
+    DataFileList = SFile2CFile()
+    print DataFileList
+    for i in DataFileList:
+        EFileName = i+".xlsx"
+        txt2xlsx (i,EFileName)
+
+
+
+
+
+
