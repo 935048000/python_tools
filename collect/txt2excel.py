@@ -2,7 +2,6 @@
 
 import xlsxwriter
 import aep
-#from os import getcwd
 from  time import strftime, localtime
 from os import getcwd,path,mkdir
 
