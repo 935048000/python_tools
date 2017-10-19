@@ -1,8 +1,10 @@
 #/usr/bin/env python
 #coding=gbk
+#Use python 2 And python 3
 
 import paramiko
 from  time import strftime,localtime
+from datetime import date,timedelta
 from telnetlib import Telnet
 from os import path,mkdir,getcwd
 from sys import argv
@@ -37,11 +39,15 @@ class collect:
         return localhost
 
     #执行命令OK
-    def command(self,CMD):
+    def command(self,CMD,*title):
         input, output, err = ssh.exec_command(CMD)
-        output = output.read().decode("gbk")
-        err = err.read().decode()
-        return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
+        output1 = output.read().decode('gbk')
+        err1 = err.read()
+        if len(title) == 1 and title[0] == "notitle":
+            return output1
+        else:
+            pass
+        return "\n[ "+CMD+" ]\n\n"+output1+"\n"
 
     # 磁盘信息OK
     class diskinfo:
@@ -83,11 +89,6 @@ class collect:
 
     # 进程信息OK
     def process(self):
-        #s命令
-        # CMD1 = "~/bin/s"
-        # input,output,err = ssh.exec_command(CMD1)
-        # output1 = output.read().decode('gbk')
-        # err1 = err.read().decode('gbk')
 
         #ps命令
         CMD2 = 'ps -ef | grep $LOGNAME'
@@ -95,7 +96,7 @@ class collect:
         output2 = output.read().decode()
         err2 = err.read().decode()
 
-        TEMP = "\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
+        TEMP = "\n[ lps ]\n\n"+output2+err2+"\n"
         return TEMP
 
     # 内存信息OK
@@ -114,14 +115,6 @@ class collect:
         output1 = output.read()
         err1 = err.read().decode()
 
-        #topas命令(交互式命令，脚本不可用)
-        # CMD2 = 'topas'
-        # input2,output,err = ssh.exec_command(CMD2)
-        # input2.write("q\n")
-        # input2.flush ()
-        # output2 = output.read().decode()
-        # err2 = err.read().decode()
-
         return "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"
 
     # 软硬件错误日志OK
@@ -131,28 +124,13 @@ class collect:
         output1 = output.read ().decode ()
         err1 = err.read ().decode ()
 
-        # CMD2 = 'errpt -aj BFE4C025'
-        # input, output, err = ssh.exec_command (CMD2)
-        # output2 = output.read ().decode ()
-        # err2 = err.read ().decode ()
+        CMD2 = 'errpt -aj BFE4C025 | head -n 56'
+        input, output, err = ssh.exec_command (CMD2)
+        output2 = output.read ().decode ()
+        err2 = err.read ().decode ()
 
-        TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"
+        TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"+"\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
         return TEMP
-
-
-    # #数据库信息NO
-    # def dbinfo(self):
-    #     #CMD='isql -Usxlottery -Psxlottery -Dsxlottery -i isql.txt -o osql.txt'
-    #     input,output,err = ssh.exec_command(CMD)
-    #     output = output.read().decode("gbk")
-    #     err = err.read().decode()
-    #
-    #     return "\n[ "+CMD+" ]\n\n"+output+err+"\n"
-    #
-    # #数据库备份NO
-    # def dbdump(self):
-    #
-    #     return 0
 
     #ping信息OK
     def ping(self,hostname,num):
@@ -166,7 +144,7 @@ class collect:
     # telnet信息OK
     def telnet(self,hostname,port):
         try:
-            tn = Telnet (hostname,port,timeout=1)
+            tn = Telnet (hostname,port,timeout=5)
         except:
             re = hostname+":"+str(port)+" Connect Error\n\n"
             return "[ telnet ]\n" + re
@@ -190,6 +168,7 @@ class collect:
         TEMP = "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"+"\n[ "+CMD2+" ]\n\n"+output2+err2+"\n"
         return TEMP
 
+
     # 日志信息
     def loginfo(self):
         CMD1 = "cd ~/log/;ls BK*.log Gateway*.log TM*.log MD*.log T900001.log T900999.log Database.err ~/FlowCtrl.log "
@@ -205,24 +184,55 @@ class collect:
             I = I+output2+err2+"\n\n"
         return I
 
+    def loganalyze(self,logtxt):
+        Today = date.today()
+        Yesterday = Today - timedelta(days=1)
+        if logtxt == "T900001.log":
+            CMD1 = "cd ~/log/;~/bin/ptail -n 100 %s | grep %s | wc -l"%(logtxt,Yesterday)
+            #CMD1 = "cd ~/log/;~/bin/ptail -n 100 T900001.log | grep 2017-10-13 | wc -l"
+            input1, output1, err1 = ssh.exec_command (CMD1)
+            TEMP = output1.read ().decode ("gbk")
+            if int (TEMP) >= 1:
+                return "T900001.log OK!\n"
+            else:
+                return "T900001.log NO!\n"
+        elif logtxt == "FlowCtrl.log":
+            CMD1 = "~/bin/ptail -n 200 ~/FlowCtrl.log | grep 'kill -9' | wc -l"
+            input1, output1, err1 = ssh.exec_command (CMD1)
+            TEMP = output1.read ().decode ("gbk")
+            if int (TEMP) >= 1:
+                return "FlowCtrl.log NO!\n"
+            else:
+                return "FlowCtrl.log OK!\n"
+
+
 
     # 信息存到文件OK
     def filesave(self,data,mode,*FileType):
         #数据存放在当前目录下的data目录
-        if len(FileType) == 1:
-            if FileType[0] == "log":
-                file_type = "log"
-        else:
-            file_type = "txt"
-
         if path.exists(DATAPATH):
             pass
         else:
             mkdir(DATAPATH)
+
+        if len(FileType) == 1:
+            if FileType[0] == "log":
+                file_type = "log"
+            elif FileType[0] == "txt":
+                file_type = "txt"
+            elif FileType[0] == "set":
+                FILE_NAME1 = '%s/set_%s.txt' % (DATAPATH, NOW_DATE)
+                file = open (FILE_NAME1, 'a')
+                file.write (data.encode ('gbk'))
+                file.close ()
+                return 0
+        elif len(FileType) == 0:
+            file_type = "txt"
+
         if mode == "add" :
             FILE_NAME1 = '%s/%s_%s.%s'%(DATAPATH,localhost,NOW_DATE,file_type)
             file = open (FILE_NAME1, 'a')
-            file.write (data.encode ('gbk'))
+            file.write (data.encode('gbk'))
         elif mode == "new":
             FILE_NAME2 = '%s/%s_%s.%s'%(DATAPATH,localhost,NOW_DATE,file_type)
             file = open(FILE_NAME2,'w')
@@ -243,10 +253,11 @@ class collect:
 
 if __name__ == '__main__':
     print("local run script.....")
+    print DATAPATH
     ## 程序测试代码
     # a = collect()
     # a.connect ('10.13.0.9', 22, 'hebappv9', 'tgbhu567890')#指定主机
-    # t=a.command("ls")
+    # t=a.command("df -g|head -n 1'","notitle")
     #
     # d=a.diskinfo()
     # t=d.diskinfo()
@@ -280,8 +291,9 @@ if __name__ == '__main__':
     #a.filesave (t, 'add')
 
     # t=a.loginfo()
-    # a.filesave (t, 'add')
-
+    # a.filesave (t, 'add','set')
+    #
+    #t = a.loganalyze("FlowCtrl.log")
     # print (t)#输出采集内容
     # a.close ()#断开ssh连接
 
