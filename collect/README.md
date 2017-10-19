@@ -13,3 +13,6 @@ collect：
     txt2excel:
         文本转化为Excel表格，并生成折线图。
         支持批量转换
+
+    pgsql:
+        支持PostgreSQL的查询功能
