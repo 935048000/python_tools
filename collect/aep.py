@@ -144,12 +144,23 @@ class collect:
     # telnet信息OK
     def telnet(self,hostname,port):
         try:
-            tn = Telnet (hostname,port,timeout=5)
+            tn = Telnet (hostname,port,timeout=10)
         except:
             re = hostname+":"+str(port)+" Connect Error\n\n"
             return "[ telnet ]\n" + re
         re = hostname + ":" + str (port) + " Connect Succeed. Time: %s\n\n" % (NOW_TIME)
         return "[ telnet ]\n"+re
+
+    def telnetexe(self,ip,user,passwd,cmd):
+        tn = Telnet (ip)
+        tn.read_until ("login: ")
+        tn.write (user + "\n")
+        tn.read_until ("Password: ")
+        tn.write (passwd + "\n")
+        tn.write (cmd + "\n")
+        tn.write ("exit\n")
+
+        return tn.read_all()
 
     # 证书信息OK
     def cart(self):
@@ -244,7 +255,6 @@ class collect:
 
     #连接断开OK
     def close(self):
-        input, output, err = ssh.exec_command ("~/bin/s")
         ssh.close()
         TEMP="\nClose OK!\n"
         return TEMP
@@ -256,7 +266,7 @@ if __name__ == '__main__':
     print DATAPATH
     ## 程序测试代码
     # a = collect()
-    # a.connect ('10.13.0.9', 22, 'hebappv9', 'tgbhu567890')#指定主机
+    # a.connect ('10.13.0.9', 22, 'xxxx', 'xxxxxx')#指定主机
     # t=a.command("df -g|head -n 1'","notitle")
     #
     # d=a.diskinfo()
