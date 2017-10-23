@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import xlsxwriter
-import aep
+import collect
 from  time import strftime, localtime
 from os import getcwd,path,mkdir
 
@@ -19,7 +19,7 @@ class dataswitch ():
         else:
             mkdir(DATAPATH)
 
-        a = aep.collect ()
+        a = collect.collect ()
         a.connect (hostname, port, username, password)
         CMD1 = "ls ~/log/Check/*.%s.dat" % (NOW_DATE)  # 根据年月查找对应的日志命令
         SFile = a.command (CMD1, "notitle")
