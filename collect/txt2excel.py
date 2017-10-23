@@ -103,7 +103,7 @@ class dataswitch ():
 
 # 测试
 if __name__ == '__main__':
-    print "local run>...."
+    print ("local run>....")
     # server2local ()
     # txt2xlsx("","Test.xlsx")
 
