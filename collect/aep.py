@@ -263,7 +263,7 @@ class collect:
 
 if __name__ == '__main__':
     print("local run script.....")
-    print DATAPATH
+    #print DATAPATH
     ## 程序测试代码
     # a = collect()
     # a.connect ('10.13.0.9', 22, 'xxxx', 'xxxxxx')#指定主机
