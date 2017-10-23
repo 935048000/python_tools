@@ -31,7 +31,7 @@ class pgsql:
 
 
 if __name__ == '__main__':
-    print "local run ...."
+    print ("local run ....")
     pgsql.pgconnect (DATABASE, USER, PASSWD, IP,POER)
     t = pgsql.exesql ("SELECT * FROM bank_balance_detail_cur")
     print t
