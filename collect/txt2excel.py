@@ -19,7 +19,7 @@ class dataswitch ():
         else:
             mkdir(DATAPATH)
 
-        a = aep.collect ()
+        a = collect.collect ()
         a.connect (hostname, port, username, password)
         CMD1 = "ls ~/log/Check/*.%s*.dat" % (date)  # 根据年月查找对应的日志命令
         SFile = a.command (CMD1, "notitle")
