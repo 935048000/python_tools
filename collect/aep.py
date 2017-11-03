@@ -27,6 +27,7 @@ class collect:
     """
     #服务器连接OK
     def connect(self, hostname, port, username, password):
+        # type: (object, object, object, object) -> object
         global ssh
         global localhost
         ssh = paramiko.SSHClient ()
@@ -181,14 +182,19 @@ class collect:
 
 
     # 日志信息
-    def loginfo(self):
+    def loginfo(self,STSTEM):
+        #input,output,err = ssh.exec_command(CMD1)
+        # if system == "linux":
+        #     STSTEM = "tail"
+        # else:
+        #     STSTEM = "~/bin/ptail"
         CMD1 = "cd ~/log/;ls BK*.log Gateway*.log TM*.log MD*.log T900001.log T900999.log Database.err ~/FlowCtrl.log "
         input1, output1, err1 = ssh.exec_command(CMD1)
         TEMP = output1.read().decode("gbk")
         LogFileList = TEMP.split("\n")
         I = "\n"
         for i in LogFileList[:-1]:
-            CMD2 = "cd ~/log/;~/bin/ptail -n 200 %s"%(i)
+            CMD2 = "cd ~/log/;%s -n 200 %s"%(STSTEM,i)
             input2, output2, err2 = ssh.exec_command (CMD2)
             output2 = output2.read ().decode ("gbk")
             err2 = err2.read ().decode ("gbk")
@@ -231,12 +237,19 @@ class collect:
                 file_type = "log"
             elif FileType[0] == "txt":
                 file_type = "txt"
+
             elif FileType[0] == "set":
                 FILE_NAME1 = '%s/set_%s.txt' % (DATAPATH, NOW_DATE)
                 file = open (FILE_NAME1, 'a')
                 file.write (data.encode ('gbk'))
-                file.close ()
-                return 0
+
+            elif FileType[0] == "sql":
+                FILE_NAME1 = '%s/pgsql_%s.sql' % (DATAPATH, NOW_DATE)
+                file = open (FILE_NAME1, 'a')
+                file.write (data)
+
+            file.close ()
+            return 0
         elif len(FileType) == 0:
             file_type = "txt"
 
