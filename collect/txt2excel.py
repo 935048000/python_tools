@@ -54,6 +54,12 @@ class dataswitch ():
             tablename = "快三开奖".decode('utf-8')
         elif tablename == "913714":
             tablename = "快三摇奖".decode('utf-8')
+        #以下两个四川的，交易号不同，独立。
+        elif tablename == "951703":
+            tablename = "快三开奖".decode('utf-8')
+        elif tablename == "951704":
+            tablename = "快三摇奖".decode('utf-8')
+
         else:
             tablename = "SSQ检索".decode('utf-8')
             xltfile = "%s\%s"%(DATAPATH,"888300.xlsx")
