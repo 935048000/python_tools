@@ -17,12 +17,12 @@ class pgsql:
         rows = cur.fetchall ()
 
         if len(rows)>1:
-            I = ""
+            I = "\n"
             for i in rows:
                 I = I + "%s\n"%(str(i))
         else:
-            I = rows
-        return I
+            I = str(rows)+"\n"
+        return I+"\n\n"
 
     def close(self):
         conn.close ()
