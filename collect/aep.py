@@ -40,11 +40,14 @@ class collect:
         return localhost
 
     #÷¥––√¸¡ÓOK
-    def command(self,CMD,*title):
-        cmd = "source ~/.bash_profile;%s" % (CMD)
-        input, output, err = ssh.exec_command (cmd)
+    def command(self,CMD,TTY,*title):
+        cmd = "source ~/.bash_profile;%s"%(CMD)
+        if TTY == "up":
+            input, output, err = ssh.exec_command(cmd ,get_pty=True)
+        else:
+            input, output, err = ssh.exec_command (cmd)
         output1 = output.read().decode('gbk')
-        err1 = err.read()
+        output1 = re.sub ('[\x1b[m]', '',output1)
         if len(title) == 1 and title[0] == "notitle":
             return output1
         else:
