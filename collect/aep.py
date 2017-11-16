@@ -41,7 +41,8 @@ class collect:
 
     #÷¥––√¸¡ÓOK
     def command(self,CMD,*title):
-        input, output, err = ssh.exec_command(CMD)
+        cmd = "source ~/.bash_profile;%s" % (CMD)
+        input, output, err = ssh.exec_command (cmd)
         output1 = output.read().decode('gbk')
         err1 = err.read()
         if len(title) == 1 and title[0] == "notitle":
