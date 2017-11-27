@@ -8,6 +8,7 @@ from datetime import date,timedelta
 from telnetlib import Telnet
 from os import path,mkdir,getcwd
 from sys import argv
+import re
 
 # 时间的全局变量
 global NOW_DATE,NOW_TIME
@@ -40,8 +41,8 @@ class collect:
         return localhost
 
     #执行命令OK
-    def command(self,CMD,TTY,*title):
-        cmd = "source ~/.bash_profile;%s"%(CMD)
+    def command(self,CMD,TTY=None,*title):
+        cmd = "export RUN_PATH=$HOME;%s"%(CMD)
         if TTY == "up":
             input, output, err = ssh.exec_command(cmd ,get_pty=True)
         else:
@@ -53,6 +54,8 @@ class collect:
         else:
             pass
         return "\n[ "+CMD+" ]\n\n"+output1+"\n"
+
+
 
     # 磁盘信息OK
     class diskinfo:
@@ -123,8 +126,8 @@ class collect:
         return "\n[ "+CMD1+" ]\n\n"+output1+err1+"\n"
 
     # 软硬件错误日志OK
-    def errlog(self,num):
-        CMD1 = 'errpt -d H -s %s | grep ERROR'%(num)
+    def errlog(self,date):
+        CMD1 = 'errpt -d H -s %s | grep ERROR'%(date)
         input, output, err = ssh.exec_command (CMD1)
         output1 = output.read ().decode ()
         err1 = err.read ().decode ()
@@ -164,8 +167,10 @@ class collect:
         tn.write (passwd + "\n")
         tn.write (cmd + "\n")
         tn.write ("exit\n")
+        TEMP = tn.read_all().decode("gbk")
 
-        return tn.read_all()
+        return TEMP
+
 
     # 证书信息OK
     def cart(self):
@@ -205,6 +210,7 @@ class collect:
             I = I+output2+err2+"\n\n"
         return I
 
+    # 日志判断，识别
     def loganalyze(self,logtxt):
         Today = date.today()
         Yesterday = Today - timedelta(days=1)
@@ -241,19 +247,27 @@ class collect:
                 file_type = "log"
             elif FileType[0] == "txt":
                 file_type = "txt"
-
             elif FileType[0] == "set":
                 FILE_NAME1 = '%s/set_%s.txt' % (DATAPATH, NOW_DATE)
                 file = open (FILE_NAME1, 'a')
                 file.write (data.encode ('gbk'))
+                file.close ()
+                return 0
 
             elif FileType[0] == "sql":
                 FILE_NAME1 = '%s/pgsql_%s.sql' % (DATAPATH, NOW_DATE)
                 file = open (FILE_NAME1, 'a')
                 file.write (data)
+                file.close ()
+                return 0
 
+        elif len(FileType) == 2:
+            FILE_NAME1 = '%s/%s_%s.txt' % (DATAPATH, FileType[1], NOW_DATE)
+            file = open (FILE_NAME1, 'a')
+            file.write (data.encode ('gbk'))
             file.close ()
             return 0
+
         elif len(FileType) == 0:
             file_type = "txt"
 
