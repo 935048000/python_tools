@@ -45,10 +45,12 @@ class collect:
         cmd = "export RUN_PATH=$HOME;%s"%(CMD)
         if TTY == "up":
             input, output, err = ssh.exec_command(cmd ,get_pty=True)
+            output1 = output.read ().decode ('gbk')
+            output1 = re.sub ('[\x1b[m]', '', output1)
         else:
             input, output, err = ssh.exec_command (cmd)
-        output1 = output.read().decode('gbk')
-        output1 = re.sub ('[\x1b[m]', '',output1)
+            output1 = output.read ().decode ('gbk')
+            output1 = re.sub ('[\x1b[m]', '', output1)
         if len(title) == 1 and title[0] == "notitle":
             return output1
         else:
