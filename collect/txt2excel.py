@@ -22,14 +22,14 @@ class dataswitch ():
         a = collect.collect ()
         a.connect (hostname, port, username, password)
         CMD1 = "ls ~/log/Check/*.%s*.dat" % (date)  # 根据年月查找对应的日志命令
-        SFile = a.command (CMD1, "notitle")
+        SFile = a.command (CMD1, "none", "notitle")
         SFile = SFile.split ('\n')  # 获取文件列表，带路径
         CFileNameTEMP = []  # 用于函数返回的文件名
         for i in SFile[:-1]:  # 文件转存
             CFileName = i[-18:-4]  # 获取文件名
             CFileName = "%s\%s"%(DATAPATH,CFileName) # 文件的绝对路径
             CMD2 = "cat %s " % (i)
-            SData = a.command (CMD2, "notitle")
+            SData = a.command (CMD2, "none", "notitle")
             CFile = open (CFileName, 'w')
             CFile.write (SData)
             CFile.close ()
